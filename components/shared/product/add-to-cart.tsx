@@ -4,7 +4,6 @@ import { CartItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { CartItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { addItemToCart } from "@/lib/actions/cart.actions";
@@ -26,7 +25,7 @@ const AddToCart = ({ item }: { item: CartItem }) => {
 
     //Handle success add to cart
     toast({
-      description: `${item.name} added to cart`,
+      description: res.message,
       action: (
         <ToastAction
           className="bg-primary text-white hover:bg-gray-800"

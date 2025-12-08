@@ -21,7 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const CartTable = ({ cart }: { cart?: Cart }) => {
   const router = useRouter();
-  const { Toast } = useToast();
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   return (
     <>
@@ -69,7 +69,7 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                               item.productId
                             );
                             if (!res.success) {
-                              Toast({
+                              toast({
                                 variant: "destructive",
                                 description: res.message,
                               });
@@ -92,7 +92,7 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                           startTransition(async () => {
                             const res = await addItemToCart(item);
                             if (!res.success) {
-                              Toast({
+                              toast({
                                 variant: "destructive",
                                 description: res.message,
                               });
@@ -126,7 +126,7 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                 className="w-full"
                 disabled={isPending}
                 onClick={() =>
-                  startTransition(() => router.push("/slipping-address"))
+                  startTransition(() => router.push("/shipping-address"))
                 }
               >
                 {isPending ? (

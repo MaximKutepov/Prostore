@@ -1,30 +1,28 @@
+// db.ts
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library"; // <-- use Decimal from runtime
 import ws from "ws";
 
-// Sets up WebSocket connections, which enables Neon to use WebSocket communication.
+// Enable WebSocket for Neon in Node.js
 neonConfig.webSocketConstructor = ws;
-const connectionString = `${process.env.DATABASE_URL}`;
 
-// Creates a new connection pool using the provided connection string, allowing multiple concurrent connections.
+const connectionString = process.env.DATABASE_URL!;
+const adapter = new PrismaNeon({ connectionString });
 
-const poolConfig = { connectionString };
-
-// Instantiates the Prisma adapter using the Neon connection pool to handle the connection between Prisma and Neon.
-const adapter = new PrismaNeon(poolConfig);
-
-// Extends the PrismaClient with a custom result transformer to convert the price and rating fields to strings.
 export const prisma = new PrismaClient({ adapter }).$extends({
   result: {
     product: {
       price: {
-        compute(product) {
+        needs: { price: true },
+        compute(product: { price: Decimal }) {
           return product.price.toString();
         },
       },
       rating: {
-        compute(product) {
+        needs: { rating: true },
+        compute(product: { rating: Decimal }) {
           return product.rating.toString();
         },
       },
@@ -32,25 +30,25 @@ export const prisma = new PrismaClient({ adapter }).$extends({
     cart: {
       itemsPrice: {
         needs: { itemsPrice: true },
-        compute(cart) {
+        compute(cart: { itemsPrice: Decimal }) {
           return cart.itemsPrice.toString();
         },
       },
       shippingPrice: {
         needs: { shippingPrice: true },
-        compute(cart) {
+        compute(cart: { shippingPrice: Decimal }) {
           return cart.shippingPrice.toString();
         },
       },
       taxPrice: {
         needs: { taxPrice: true },
-        compute(cart) {
+        compute(cart: { taxPrice: Decimal }) {
           return cart.taxPrice.toString();
         },
       },
       totalPrice: {
         needs: { totalPrice: true },
-        compute(cart) {
+        compute(cart: { totalPrice: Decimal }) {
           return cart.totalPrice.toString();
         },
       },
@@ -58,33 +56,34 @@ export const prisma = new PrismaClient({ adapter }).$extends({
     order: {
       itemsPrice: {
         needs: { itemsPrice: true },
-        compute(cart) {
-          return cart.itemsPrice.toString();
+        compute(order: { itemsPrice: Decimal }) {
+          return order.itemsPrice.toString();
         },
       },
       shippingPrice: {
         needs: { shippingPrice: true },
-        compute(cart) {
-          return cart.shippingPrice.toString();
+        compute(order: { shippingPrice: Decimal }) {
+          return order.shippingPrice.toString();
         },
       },
       taxPrice: {
         needs: { taxPrice: true },
-        compute(cart) {
-          return cart.taxPrice.toString();
+        compute(order: { taxPrice: Decimal }) {
+          return order.taxPrice.toString();
         },
       },
       totalPrice: {
         needs: { totalPrice: true },
-        compute(cart) {
-          return cart.totalPrice.toString();
+        compute(order: { totalPrice: Decimal }) {
+          return order.totalPrice.toString();
         },
       },
     },
     orderItem: {
       price: {
-        compute(cart) {
-          return cart.price.toString();
+        needs: { price: true },
+        compute(orderItem: { price: Decimal }) {
+          return orderItem.price.toString();
         },
       },
     },

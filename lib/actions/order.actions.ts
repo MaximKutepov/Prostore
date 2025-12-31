@@ -7,11 +7,12 @@ import { getMyCart } from "./cart.actions";
 import { getUserById } from "./user.actions";
 import { insertOrderSchema } from "../validators";
 import { prisma } from "@/db/prisma";
-import { CartItem, PaymentResult } from "@/types";
+import { CartItem, PaymentResult, ShippingAddress } from "@/types";
 import { paypal } from "../paypal";
 import { revalidatePath } from "next/cache";
 import { PAGE_SIZE } from "../constants";
 import { Prisma } from "@prisma/client";
+import { sendPurchaseReceipt } from "@/email";
 
 //Create order and create the order items
 export async function createOrder() {
@@ -207,7 +208,7 @@ export async function approvePayPalOrder(
   }
 }
 
-//Update order to paid
+// Update order to paid
 export async function updateOrderToPaid({
   orderId,
   paymentResult,
@@ -215,6 +216,7 @@ export async function updateOrderToPaid({
   orderId: string;
   paymentResult?: PaymentResult;
 }) {
+  // Get order from database
   const order = await prisma.order.findFirst({
     where: {
       id: orderId,
@@ -223,23 +225,22 @@ export async function updateOrderToPaid({
       orderitems: true,
     },
   });
+
   if (!order) throw new Error("Order not found");
+
   if (order.isPaid) throw new Error("Order is already paid");
 
   // Transaction to update order and account for product stock
   await prisma.$transaction(async (tx) => {
-    //Iterate over products and update stock
+    // Iterate over products and update stock
     for (const item of order.orderitems) {
       await tx.product.update({
-        where: {
-          id: item.productId,
-        },
+        where: { id: item.productId },
         data: { stock: { increment: -item.qty } },
       });
     }
 
     // Set the order to paid
-
     await tx.order.update({
       where: { id: orderId },
       data: {
@@ -262,6 +263,14 @@ export async function updateOrderToPaid({
   });
 
   if (!updatedOrder) throw new Error("Order not found");
+
+  sendPurchaseReceipt({
+    order: {
+      ...updatedOrder,
+      shippingAddress: updatedOrder.shippingAddress as ShippingAddress,
+      paymentResult: updatedOrder.paymentResult as PaymentResult,
+    },
+  });
 }
 
 //Get user's orders

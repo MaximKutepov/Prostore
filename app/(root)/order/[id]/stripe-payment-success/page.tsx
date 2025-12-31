@@ -17,10 +17,10 @@ const SuccessPage = async (props: {
   const order = await getOrderById(id);
   if (!order) notFound();
 
-  //Retrieve payment intent
+  // Retrieve payment intent
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-  //Check if payment intent is valid
+  // Check if payment intent is valid
   if (
     paymentIntent.metadata.orderId == null ||
     paymentIntent.metadata.orderId !== order.id.toString()
@@ -28,10 +28,11 @@ const SuccessPage = async (props: {
     return notFound();
   }
 
-  //Check if payment is successful
+  // Check if payment is successful
   const isSuccess = paymentIntent.status === "succeeded";
 
   if (!isSuccess) return redirect(`/order/${id}`);
+
   return (
     <div className="max-w-4xl w-full mx-auto space-y-8">
       <div className="flex flex-col gap-6 items-center">

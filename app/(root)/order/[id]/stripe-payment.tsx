@@ -1,3 +1,4 @@
+import { FormEvent, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -7,7 +8,6 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useTheme } from "next-themes";
-import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormatCurrency } from "@/lib/utils";
 import { SERVER_URL } from "@/lib/constants";
@@ -27,7 +27,7 @@ const StripePayment = ({
 
   const { theme, systemTheme } = useTheme();
 
-  //Stripe Form component
+  // Stripe Form Component
   const StripeForm = () => {
     const stripe = useStripe();
     const elements = useElements();
@@ -85,6 +85,7 @@ const StripePayment = ({
       </form>
     );
   };
+
   return (
     <Elements
       options={{

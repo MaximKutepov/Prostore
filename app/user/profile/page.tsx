@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
 import ProfileForm from "./profile-form";
 
-export const metadata: MetaData = {
+export const metadata: Metadata = {
   title: "Profile",
 };
 

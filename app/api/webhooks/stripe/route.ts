@@ -11,7 +11,10 @@ export async function POST(req: NextRequest) {
   );
 
   // Check for successful payment
-  if (event.type === "payment_intent.succeeded") {
+  if (
+    event.type === "payment_intent.succeeded" ||
+    event.type === "charge.succeeded"
+  ) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
     // Update order status

@@ -44,11 +44,6 @@ export async function signInWithCredentials(
 
 // Sign user out
 export async function signOutUser() {
-  // get current users cart and delete it so it does not persist to next user
-  const currentCart = await getMyCart();
-  if (currentCart?.userId) {
-    await prisma.cart.delete({ where: { id: currentCart?.id } });
-  }
   await signOut();
 }
 
@@ -241,6 +236,10 @@ export async function deleteUser(id: string) {
 //Update a user
 export async function updateUser(user: z.infer<typeof updateUserSchema>) {
   try {
+    // Get current session to check if user is updating themselves
+    const session = await auth();
+    const isUpdatingSelf = session?.user?.id === user.id;
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -250,6 +249,17 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
     });
 
     revalidatePath("/admin/users");
+
+    // If user is updating their own role, force sign out for security
+    if (isUpdatingSelf && session?.user?.role !== user.role) {
+      await signOut({ redirect: false });
+      return {
+        success: true,
+        message: "Your role has been updated. Please sign in again.",
+        redirect: "/sign-in",
+      };
+    }
+
     return {
       success: true,
       message: "User updated successfully",

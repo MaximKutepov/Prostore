@@ -57,7 +57,13 @@ const UpdateUserForm = ({
         description: res.message,
       });
       form.reset();
-      router.push("/admin/users");
+
+      // If user changed their own role, redirect to sign-in
+      if (res.redirect) {
+        router.push(res.redirect);
+      } else {
+        router.push("/admin/users");
+      }
     } catch (error) {
       toast({
         variant: "destructive",

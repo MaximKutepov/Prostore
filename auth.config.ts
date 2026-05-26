@@ -6,7 +6,19 @@ export const authConfig = {
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     authorized({ request, auth }: any) {
-      //Array of regex patterns of paths we want to protect
+      const { pathname } = request.nextUrl;
+      const isGuest = !auth;
+      const isAdmin = auth?.user?.role === "admin";
+
+      // 1. ADMIN PATH PROTECTION
+      if (pathname.startsWith("/admin")) {
+        if (isGuest) return false; // Redirects guest to login
+        if (!isAdmin) {
+          // Already logged in but NOT an admin? Redirect to home instead of login page
+          return NextResponse.redirect(new URL("/", request.url));
+        }
+      }
+
       const protectedPaths = [
         /\/shipping-address/,
         /\/payment-method/,
@@ -14,14 +26,10 @@ export const authConfig = {
         /\/profile/,
         /\/user\/(.*)/,
         /\/order\/(.*)/,
-        /\/admin/,
       ];
 
-      // Get pathname from the req URL object
-      const { pathname } = request.nextUrl;
-
       // Check if user is not authenticated and accessing a protected path
-      if (!auth && protectedPaths.some((p) => p.test(pathname))) return false;
+      if (isGuest && protectedPaths.some((p) => p.test(pathname))) return false;
 
       // Check for session cart cookie
       if (!request.cookies.get("sessionCartId")) {
@@ -42,9 +50,8 @@ export const authConfig = {
         response.cookies.set("sessionCartId", sessionCartId);
 
         return response;
-      } else {
-        return true;
       }
+      return true;
     },
   },
 } satisfies NextAuthConfig;
